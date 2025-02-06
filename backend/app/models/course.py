@@ -12,7 +12,7 @@ course_prerequisite = Table(
 class Course(Base):
     __tablename__ = "course"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True)
     parent_id = Column(Integer, ForeignKey("course.id"), nullable=True)
     children = relationship("Course", backref=backref("parent", remote_side=[id]))
