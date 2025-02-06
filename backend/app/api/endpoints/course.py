@@ -36,3 +36,17 @@ async def delete_course(course_id: int, db: AsyncSession = Depends(get_db)):
     if db_course is None:
         raise HTTPException(status_code=404, detail="Course not found")
     return db_course
+
+@router.get("/courses/{course_id}/dependencies", response_model=List[Course])
+async def read_course_dependencies(course_id: int, db: AsyncSession = Depends(get_db)):
+    dependencies = await CourseService.get_course_dependencies(db, course_id)
+    if not dependencies:
+        raise HTTPException(status_code=404, detail="Dependencies not found")
+    return dependencies
+
+@router.get("/courses/parent/{parent_id}", response_model=List[Course])
+async def read_courses_by_parent_id(parent_id: int, db: AsyncSession = Depends(get_db)):
+    courses = await CourseService.get_courses_by_parent_id(db, parent_id)
+    if not courses:
+        raise HTTPException(status_code=404, detail="No courses found with the given parent_id")
+    return courses

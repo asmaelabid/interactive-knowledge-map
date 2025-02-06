@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Column, ForeignKey, Integer, String, Table, Index
 from sqlalchemy.orm import relationship, backref
 from app.core.db import Base
 
@@ -7,6 +7,8 @@ course_prerequisite = Table(
     Base.metadata,
     Column("course_id", Integer, ForeignKey("course.id"), primary_key=True),
     Column("prerequisite_id", Integer, ForeignKey("course.id"), primary_key=True),
+    Index('ix_course_prerequisite_course_id', 'course_id'),
+    Index('ix_course_prerequisite_prerequisite_id', 'prerequisite_id')
 )
 
 class Course(Base):

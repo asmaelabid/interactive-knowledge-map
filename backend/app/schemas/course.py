@@ -10,6 +10,6 @@ class CourseCreate(CourseBase):
 
 class Course(CourseBase):
     id: int
-    
+
     class Config:
         from_attributes = True 
