@@ -1,6 +1,7 @@
 <template>
-  <div ref="graph">
-    <h1>Graph</h1>
+  <div ref="graph" class="w-full h-full flex flex-col items-center justify-center">
+    <h1 class="text-2xl font-bold mb-4">Graph</h1>
+    <div class="w-full h-full" ref="graphContainer"></div>
   </div>
 </template>
 
@@ -9,7 +10,7 @@ import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
 
-const graph = ref(null)
+const graphContainer = ref(null)
 
 onMounted(async () => {
   const response = await axios.get('http://localhost:8000/api/v1/courses')
@@ -20,18 +21,22 @@ onMounted(async () => {
     .filter(d => d.parent_id !== null)
     .map(d => ({ source: d.parent_id, target: d.id }))
 
-  const width = 800
-  const height = 600
+  const width = graphContainer.value.clientWidth || 800
+  const height = graphContainer.value.clientHeight || 600
 
-  const svg = d3.select(graph.value)
+  const svg = d3.select(graphContainer.value)
     .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+    .attr('width', '100%')
+    .attr('height', '100%')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
 
   const simulation = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(100))
-    .force('charge', d3.forceManyBody().strength(-300))
+    .force('link', d3.forceLink(links).id(d => d.id).distance(200))
+    .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('x', d3.forceX(width / 2).strength(0.05))
+    .force('y', d3.forceY(height / 2).strength(0.05))
 
   const link = svg.append('g')
     .attr('class', 'links')
@@ -95,11 +100,15 @@ onMounted(async () => {
 <style scoped>
 svg {
   border: 1px solid black;
+  width: 100%;
+  height: 100%;
 }
+
 .links line {
   stroke: #999;
   stroke-opacity: 0.6;
 }
+
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;
