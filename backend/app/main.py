@@ -1,6 +1,12 @@
 from fastapi import FastAPI
-from app.api.endpoints import course
+from app.api.router.router import router, setup_cors
 
+app = FastAPI(
+    title="Knowledge Map API",
+    description="API for managing courses and their relationships",
+    version="1.0.0"
+)
 
-app = FastAPI()
-app.include_router(course.router, tags=["courses"])
+setup_cors(app)
+
+app.include_router(router)
