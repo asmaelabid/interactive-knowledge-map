@@ -11,7 +11,7 @@ import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
 import { useGraphStore } from '../stores/useGraphStore'
-import {NodeEditor} from './NodeEditor.vue'
+import NodeEditor from './NodeEditor.vue'
 
 const graphContainer = ref(null)
 const store = useGraphStore()
