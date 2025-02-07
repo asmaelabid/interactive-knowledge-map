@@ -2,6 +2,7 @@
   <div class="h-full w-full flex flex-col">
     <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
     <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
+    <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
   </div>
 </template>
 
@@ -9,14 +10,33 @@
 import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
+import { useGraphStore } from '../stores/useGraphStore'
+import NodeEditor from './NodeEditor.vue'
 
 const graphContainer = ref(null)
+const store = useGraphStore()
+const selectedNode = ref(null)
 
 onMounted(async () => {
+  store.loadFromLocalStorage()
   const response = await axios.get('http://localhost:8000/api/v1/courses')
   const data = response.data
 
-  const nodes = data.map(d => ({ id: d.id, name: d.name }))
+  const nodes = data.map(d => {
+    const storedNode = store.nodes.find(n => n.id === d.id)
+    if (storedNode) {
+      return {
+        id: d.id,
+        name: d.name,
+        x: storedNode.x,
+        y: storedNode.y,
+        fx: storedNode.x,
+        fy: storedNode.y
+      }
+    }
+    return { id: d.id, name: d.name }
+  })
+  store.initializeNodes(nodes);
   const links = data
     .filter(d => d.parent_id !== null)
     .map(d => ({ source: d.parent_id, target: d.id }))
@@ -39,6 +59,7 @@ onMounted(async () => {
     .force('x', d3.forceX(width / 2).strength(0.05))
     .force('y', d3.forceY(height / 2).strength(0.05))
 
+  simulation.nodes(nodes)
   const link = svg.append('g')
     .attr('class', 'links')
     .selectAll('line')
@@ -71,32 +92,64 @@ onMounted(async () => {
     .attr('class', 'node-text')
     .text(d => d.name)
 
-  node
+  node.selectAll('circle')
     .on('mouseover', function () {
-      d3.select(this).select('circle')
+      d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 15)
+        .attr('fill', 'orange')
     })
     .on('mouseout', function () {
-      d3.select(this).select('circle')
+      d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 12)
+        .attr('fill', 'var(--node-gradient-from)')
+    })
+    .on('mousedown', function (event, d) {
+      link.each(function (l) {
+        if (l.source.id === d.id || l.target.id === d.id) {
+          d3.select(this)
+            .transition()
+            .duration(50)
+            .attr('stroke', '#ffa07a')
+          node.selectAll('circle').each(function (n) {
+            if (l.source.id === n.id || l.target.id === n.id) {
+              if (n.id !== d.id) {
+                d3.select(this)
+                  .transition()
+                  .duration(50)
+                  .attr('fill', '#ffa07a')
+              }
+            }
+          })
+        }
+      })
+    })
+    .on('mouseup', function (event, d) {
+      node.selectAll('circle')
+        .transition()
+        .duration(50)
+        .attr('fill', 'var(--node-gradient-from)')
+      link
+        .transition()
+        .duration(50)
+        .attr('stroke', '#999')
+    })
+    .on('dblclick', function (event, d) {
+      console.log('Double clicked on:', d)
+      selectedNode.value = d
     })
 
   simulation.on('tick', () => {
     link
-      .transition()
-      .duration(50)
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x)
       .attr('y2', d => d.target.y)
 
     node
-      .transition()
-      .duration(50)
       .attr('transform', d => `translate(${d.x},${d.y})`)
   })
 
@@ -107,16 +160,32 @@ onMounted(async () => {
   }
 
   function dragged(event, d) {
-  const width = graphContainer.value?.clientWidth || 800
-  const height = graphContainer.value?.clientHeight || 600
+    const width = graphContainer.value?.clientWidth || 800
+    const height = graphContainer.value?.clientHeight || 600
 
-  d.fx = Math.max(0, Math.min(width, event.x))
-  d.fy = Math.max(0, Math.min(height, event.y))
-}
+    d.fx = Math.max(0, Math.min(width, event.x))
+    d.fy = Math.max(0, Math.min(height, event.y))
+  }
+
   function dragended(event, d) {
     if (!event.active) simulation.alphaTarget(0)
+    const x = Math.max(0, Math.min(width, event.x))
+    const y = Math.max(0, Math.min(height, event.y))
+    d.x = x
+    d.y = y
     d.fx = null
     d.fy = null
+    store.updateNodePosition(d.id, x, y)
+    simulation.alpha(0.1).restart()
+
+    node.selectAll('circle')
+      .transition()
+      .duration(50)
+      .attr('fill', 'var(--node-gradient-from)')
+    link
+      .transition()
+      .duration(50)
+      .attr('stroke', '#999')
   }
 })
 </script>
@@ -181,7 +250,7 @@ svg {
   filter: drop-shadow(0 8px 6px rgb(0 0 0 / 0.1));
 }
 
-.nodes g:hover ~ line {
+.nodes g:hover~line {
   stroke-opacity: 0.8;
   stroke-width: 3px;
 }
