@@ -56,8 +56,8 @@ onMounted(async () => {
     .force('x', d3.forceX(width / 2).strength(0.05))
     .force('y', d3.forceY(height / 2).strength(0.05))
 
-  simulation.nodes(nodes.filter(n => !n.fx && !n.fy))
-  const link = svg.append('g')
+    simulation.nodes(nodes)
+    const link = svg.append('g')
     .attr('class', 'links')
     .selectAll('line')
     .data(links)
@@ -130,8 +130,8 @@ onMounted(async () => {
     const width = graphContainer.value?.clientWidth || 800
     const height = graphContainer.value?.clientHeight || 600
 
-  d.fx = d.x = Math.max(0, Math.min(width, event.x))
-  d.fy = d.y = Math.max(0, Math.min(height, event.y))
+  d.fx = Math.max(0, Math.min(width, event.x))
+  d.fy = Math.max(0, Math.min(height, event.y))
   }
 
   function dragended(event, d) {
@@ -140,8 +140,8 @@ onMounted(async () => {
     const y = Math.max(0, Math.min(height, event.y))
     d.x = x
     d.y = y
-    d.fx = x
-    d.fy = y
+    d.fx = null
+    d.fy = null
     store.updateNodePosition(d.id, x, y)
     simulation.alpha(0.1).restart()
   }

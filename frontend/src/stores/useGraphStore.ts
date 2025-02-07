@@ -9,21 +9,19 @@ export const useGraphStore = defineStore("graph", () => {
 
     nodes.value = newNodes.map((node) => {
       const existingNode = storedNodes.find((n) => n.id === node.id);
-      if (existingNode) {
+      if (existingNode && existingNode.wasPositioned) {
         return {
           ...node,
           x: existingNode.x,
           y: existingNode.y,
           fx: existingNode.x,
           fy: existingNode.y,
+          wasPositioned: true
         };
       }
       return {
         ...node,
-        x: null,
-        y: null,
-        fx: null,
-        fy: null,
+        wasPositioned: false
       };
     });
 
@@ -41,6 +39,7 @@ export const useGraphStore = defineStore("graph", () => {
       node.y = y;
       node.fx = x;
       node.fy = y;
+      node.wasPositioned = true;
       saveToLocalStorage();
     }
   }
