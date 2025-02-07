@@ -89,16 +89,17 @@ onMounted(async () => {
     .attr('class', 'node-text')
     .text(d => d.name)
 
-  node
+    node.selectAll('circle')
     .on('mouseover', function () {
-      d3.select(this).select('circle')
+      d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 15)
         .attr('fill', 'orange')
     })
+
     .on('mouseout', function () {
-      d3.select(this).select('circle')
+      d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 12)
