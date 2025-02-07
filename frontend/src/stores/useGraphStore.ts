@@ -5,15 +5,33 @@ export const useGraphStore = defineStore("graph", () => {
   const nodes = ref([]);
 
   function initializeNodes(newNodes) {
-    // Initialize store with nodes from API
-    nodes.value = newNodes.map(node => ({
-      ...node,
-      x: node.x || window.innerWidth / 2,
-      y: node.y || window.innerHeight / 2,
-      fx: node.fx || null,
-      fy: node.fy || null,
-    }));
-    saveToLocalStorage();
+    const storedNodes = JSON.parse(localStorage.getItem("graphNodes") || "[]");
+
+    nodes.value = newNodes.map((node) => {
+      const existingNode = storedNodes.find((n) => n.id === node.id);
+      if (existingNode) {
+        return {
+          ...node,
+          x: existingNode.x,
+          y: existingNode.y,
+          fx: existingNode.x,
+          fy: existingNode.y,
+        };
+      }
+      return {
+        ...node,
+        x: null,
+        y: null,
+        fx: null,
+        fy: null,
+      };
+    });
+
+    if (!storedNodes.length) {
+      setTimeout(() => {
+        saveToLocalStorage();
+      }, 2000);
+    }
   }
 
   function updateNodePosition(id, x, y) {
@@ -38,10 +56,10 @@ export const useGraphStore = defineStore("graph", () => {
     }
   }
 
-  return { 
-    nodes, 
+  return {
+    nodes,
     initializeNodes,
-    updateNodePosition, 
-    loadFromLocalStorage 
+    updateNodePosition,
+    loadFromLocalStorage,
   };
 });

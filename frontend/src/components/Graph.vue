@@ -28,7 +28,7 @@ onMounted(async () => {
         x: storedNode.x,
         y: storedNode.y,
         fx: storedNode.x,
-        fy: storedNode.y 
+        fy: storedNode.y
       }
     }
     return { id: d.id, name: d.name }
@@ -49,13 +49,14 @@ onMounted(async () => {
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('class', 'rounded-lg')
 
-  const simulation = d3.forceSimulation(nodes)
+    const simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force('x', d3.forceX(width / 2).strength(0.05))
     .force('y', d3.forceY(height / 2).strength(0.05))
 
+  simulation.nodes(nodes.filter(n => !n.fx && !n.fy))
   const link = svg.append('g')
     .attr('class', 'links')
     .selectAll('line')
@@ -129,8 +130,8 @@ onMounted(async () => {
     const width = graphContainer.value?.clientWidth || 800
     const height = graphContainer.value?.clientHeight || 600
 
-    d.fx = Math.max(0, Math.min(width, event.x))
-    d.fy = Math.max(0, Math.min(height, event.y))
+  d.fx = d.x = Math.max(0, Math.min(width, event.x))
+  d.fy = d.y = Math.max(0, Math.min(height, event.y))
   }
 
   function dragended(event, d) {
@@ -142,6 +143,7 @@ onMounted(async () => {
     d.fx = x
     d.fy = y
     store.updateNodePosition(d.id, x, y)
+    simulation.alpha(0.1).restart()
   }
 })
 </script>
