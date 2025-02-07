@@ -9,14 +9,31 @@
 import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
+import { useGraphStore } from '../stores/useGraphStore'
 
 const graphContainer = ref(null)
+const store = useGraphStore()
 
 onMounted(async () => {
+  store.loadFromLocalStorage()
   const response = await axios.get('http://localhost:8000/api/v1/courses')
   const data = response.data
 
-  const nodes = data.map(d => ({ id: d.id, name: d.name }))
+  const nodes = data.map(d => {
+    const storedNode = store.nodes.find(n => n.id === d.id)
+    if (storedNode) {
+      return {
+        id: d.id,
+        name: d.name,
+        x: storedNode.x,
+        y: storedNode.y,
+        fx: storedNode.x,
+        fy: storedNode.y 
+      }
+    }
+    return { id: d.id, name: d.name }
+  })
+  store.initializeNodes(nodes);
   const links = data
     .filter(d => d.parent_id !== null)
     .map(d => ({ source: d.parent_id, target: d.id }))
@@ -77,12 +94,14 @@ onMounted(async () => {
         .transition()
         .duration(50)
         .attr('r', 15)
+        .attr('fill', 'orange')
     })
     .on('mouseout', function () {
       d3.select(this).select('circle')
         .transition()
         .duration(50)
         .attr('r', 12)
+        .attr('fill', 'var(--node-gradient-from)')
     })
 
   simulation.on('tick', () => {
@@ -107,16 +126,22 @@ onMounted(async () => {
   }
 
   function dragged(event, d) {
-  const width = graphContainer.value?.clientWidth || 800
-  const height = graphContainer.value?.clientHeight || 600
+    const width = graphContainer.value?.clientWidth || 800
+    const height = graphContainer.value?.clientHeight || 600
 
-  d.fx = Math.max(0, Math.min(width, event.x))
-  d.fy = Math.max(0, Math.min(height, event.y))
-}
+    d.fx = Math.max(0, Math.min(width, event.x))
+    d.fy = Math.max(0, Math.min(height, event.y))
+  }
+
   function dragended(event, d) {
     if (!event.active) simulation.alphaTarget(0)
-    d.fx = null
-    d.fy = null
+    const x = Math.max(0, Math.min(width, event.x))
+    const y = Math.max(0, Math.min(height, event.y))
+    d.x = x
+    d.y = y
+    d.fx = x
+    d.fy = y
+    store.updateNodePosition(d.id, x, y)
   }
 })
 </script>
@@ -181,7 +206,7 @@ svg {
   filter: drop-shadow(0 8px 6px rgb(0 0 0 / 0.1));
 }
 
-.nodes g:hover ~ line {
+.nodes g:hover~line {
   stroke-opacity: 0.8;
   stroke-width: 3px;
 }
