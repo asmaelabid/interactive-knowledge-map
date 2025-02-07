@@ -49,15 +49,15 @@ onMounted(async () => {
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('class', 'rounded-lg')
 
-    const simulation = d3.forceSimulation(nodes)
+  const simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force('x', d3.forceX(width / 2).strength(0.05))
     .force('y', d3.forceY(height / 2).strength(0.05))
 
-    simulation.nodes(nodes)
-    const link = svg.append('g')
+  simulation.nodes(nodes)
+  const link = svg.append('g')
     .attr('class', 'links')
     .selectAll('line')
     .data(links)
@@ -89,7 +89,7 @@ onMounted(async () => {
     .attr('class', 'node-text')
     .text(d => d.name)
 
-    node.selectAll('circle')
+  node.selectAll('circle')
     .on('mouseover', function () {
       d3.select(this)
         .transition()
@@ -97,7 +97,6 @@ onMounted(async () => {
         .attr('r', 15)
         .attr('fill', 'orange')
     })
-
     .on('mouseout', function () {
       d3.select(this)
         .transition()
@@ -105,19 +104,45 @@ onMounted(async () => {
         .attr('r', 12)
         .attr('fill', 'var(--node-gradient-from)')
     })
+    .on('mousedown', function (event, d) {
+      link.each(function (l) {
+        if (l.source.id === d.id || l.target.id === d.id) {
+          d3.select(this)
+            .transition()
+            .duration(50)
+            .attr('stroke', '#ffa07a')
+          node.selectAll('circle').each(function (n) {
+            if (l.source.id === n.id || l.target.id === n.id) {
+              if (n.id !== d.id) {
+                d3.select(this)
+                  .transition()
+                  .duration(50)
+                  .attr('fill', '#ffa07a')
+              }
+            }
+          })
+        }
+      })
+    })
+    .on('mouseup', function (event, d) {
+      node.selectAll('circle')
+        .transition()
+        .duration(50)
+        .attr('fill', 'var(--node-gradient-from)')
+      link
+        .transition()
+        .duration(50)
+        .attr('stroke', '#999')
+    })
 
   simulation.on('tick', () => {
     link
-      .transition()
-      .duration(50)
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x)
       .attr('y2', d => d.target.y)
 
     node
-      .transition()
-      .duration(50)
       .attr('transform', d => `translate(${d.x},${d.y})`)
   })
 
@@ -131,8 +156,8 @@ onMounted(async () => {
     const width = graphContainer.value?.clientWidth || 800
     const height = graphContainer.value?.clientHeight || 600
 
-  d.fx = Math.max(0, Math.min(width, event.x))
-  d.fy = Math.max(0, Math.min(height, event.y))
+    d.fx = Math.max(0, Math.min(width, event.x))
+    d.fy = Math.max(0, Math.min(height, event.y))
   }
 
   function dragended(event, d) {
@@ -145,6 +170,15 @@ onMounted(async () => {
     d.fy = null
     store.updateNodePosition(d.id, x, y)
     simulation.alpha(0.1).restart()
+
+    node.selectAll('circle')
+      .transition()
+      .duration(50)
+      .attr('fill', 'var(--node-gradient-from)')
+    link
+      .transition()
+      .duration(50)
+      .attr('stroke', '#999')
   }
 })
 </script>
