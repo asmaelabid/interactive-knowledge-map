@@ -2,12 +2,8 @@
 </script>
 
 <template>
-  <div>
-    <nav>
-      <router-link to="/">Home</router-link>
-      <router-link to="/graph">Graph</router-link>
-    </nav>
-    <router-view></router-view>
+  <div class="min-h-screen w-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <router-view class="flex-1"></router-view>
   </div>
 </template>
 
