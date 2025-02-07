@@ -5,8 +5,6 @@
   </div>
 </template>
 
-
-
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
@@ -47,7 +45,7 @@ onMounted(async () => {
     .data(links)
     .enter()
     .append('line')
-    .attr('class', 'transition-all duration-300 ease-in-out')
+    .attr('class', 'transition-all duration-50 ease-in-out')
     .attr('stroke-width', 2)
     .attr('stroke', '#999')
 
@@ -57,7 +55,7 @@ onMounted(async () => {
     .data(nodes)
     .enter()
     .append('g')
-    .attr('class', 'cursor-pointer transition-all duration-300 ease-in-out')
+    .attr('class', 'cursor-pointer transition-all duration-50 ease-in-out')
     .call(d3.drag()
       .on('start', dragstarted)
       .on('drag', dragged)
@@ -77,23 +75,28 @@ onMounted(async () => {
     .on('mouseover', function () {
       d3.select(this).select('circle')
         .transition()
-        .duration(200)
+        .duration(50)
         .attr('r', 15)
     })
     .on('mouseout', function () {
       d3.select(this).select('circle')
         .transition()
-        .duration(200)
+        .duration(50)
         .attr('r', 12)
     })
+
   simulation.on('tick', () => {
     link
+      .transition()
+      .duration(50)
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
       .attr('x2', d => d.target.x)
       .attr('y2', d => d.target.y)
 
     node
+      .transition()
+      .duration(50)
       .attr('transform', d => `translate(${d.x},${d.y})`)
   })
 
@@ -104,10 +107,12 @@ onMounted(async () => {
   }
 
   function dragged(event, d) {
-    d.fx = event.x
-    d.fy = event.y
-  }
+  const width = graphContainer.value?.clientWidth || 800
+  const height = graphContainer.value?.clientHeight || 600
 
+  d.fx = Math.max(0, Math.min(width, event.x))
+  d.fy = Math.max(0, Math.min(height, event.y))
+}
   function dragended(event, d) {
     if (!event.active) simulation.alphaTarget(0)
     d.fx = null
@@ -115,6 +120,7 @@ onMounted(async () => {
   }
 })
 </script>
+
 <style scoped>
 /* Base theme variables */
 :root {
@@ -139,7 +145,7 @@ svg {
   display: block;
   width: 100%;
   height: 100%;
-  @apply rounded-lg;
+  border-radius: 0.5rem;
   overflow: visible;
 }
 
