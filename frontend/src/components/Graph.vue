@@ -2,6 +2,7 @@
   <div class="h-full w-full flex flex-col">
     <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
     <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
+    <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
   </div>
 </template>
 
@@ -10,9 +11,11 @@ import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
 import { useGraphStore } from '../stores/useGraphStore'
+import {NodeEditor} from './NodeEditor.vue'
 
 const graphContainer = ref(null)
 const store = useGraphStore()
+const selectedNode = ref(null)
 
 onMounted(async () => {
   store.loadFromLocalStorage()
@@ -133,6 +136,10 @@ onMounted(async () => {
         .transition()
         .duration(50)
         .attr('stroke', '#999')
+    })
+    .on('dblclick', function (event, d) {
+      console.log('Double clicked on:', d)
+      selectedNode.value = d
     })
 
   simulation.on('tick', () => {

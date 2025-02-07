@@ -1,8 +1,15 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import axios from "axios";
 
 export const useGraphStore = defineStore("graph", () => {
   const nodes = ref([]);
+
+  async function fetchNodes() {
+    const response = await axios.get('http://localhost:8000/api/v1/courses')
+    const data = response.data
+    initializeNodes(data)
+  }
 
   function initializeNodes(newNodes) {
     const storedNodes = JSON.parse(localStorage.getItem("graphNodes") || "[]");
@@ -60,5 +67,6 @@ export const useGraphStore = defineStore("graph", () => {
     initializeNodes,
     updateNodePosition,
     loadFromLocalStorage,
+    fetchNodes,
   };
 });
