@@ -71,12 +71,19 @@ onMounted(async () => {
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('class', 'rounded-lg')
 
-  const simulation = d3.forceSimulation(nodes)
+    const simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force('x', d3.forceX(width / 2).strength(0.05))
-    .force('y', d3.forceY(height / 2).strength(0.05))
+    .force('x', d3.forceX(width / 2).strength(0.1)) // increased strength
+    .force('y', d3.forceY(height / 2).strength(0.1)) // increased strength
+    .force('collision', d3.forceCollide().radius(50)) // add collision force
+    .force('bounds', () => { // add custom bounds force
+      nodes.forEach(node => {
+        node.x = Math.max(20, Math.min(width - 20, node.x))
+        node.y = Math.max(20, Math.min(height - 20, node.y))
+      })
+    })
 
   simulation.nodes(nodes)
   const link = svg.append('g')
@@ -95,7 +102,7 @@ onMounted(async () => {
     .data(nodes)
     .enter()
     .append('g')
-    .attr('class', 'cursor-pointer transition-all duration-50 ease-in-out')
+    .attr('class', 'cursor-pointer')
     .call(d3.drag()
       .on('start', dragstarted)
       .on('drag', dragged)
@@ -165,6 +172,10 @@ onMounted(async () => {
     })
 
   simulation.on('tick', () => {
+    nodes.forEach(node => {
+      node.x = Math.max(20, Math.min(width - 20, node.x))
+      node.y = Math.max(20, Math.min(height - 20, node.y))
+    })
     link
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
@@ -182,11 +193,12 @@ onMounted(async () => {
   }
 
   function dragged(event, d) {
+    const padding = 20
     const width = graphContainer.value?.clientWidth || 800
     const height = graphContainer.value?.clientHeight || 600
 
-    d.fx = Math.max(0, Math.min(width, event.x))
-    d.fy = Math.max(0, Math.min(height, event.y))
+    d.fx = Math.max(padding, Math.min(width - padding, event.x))
+    d.fy = Math.max(padding, Math.min(height - padding, event.y))
   }
 
   function dragended(event, d) {
