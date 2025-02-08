@@ -1,8 +1,14 @@
 <template>
-  <div class="h-full w-full flex flex-col">
-    <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
-    <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
-    <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
+  <div class="relative h-screen w-full">
+    <div class="absolute inset-0 flex flex-col" :class="{ 'blur-sm': showJsonViewer }">
+      <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
+      <button @click="toggleJsonViewer" class="p-2 m-4 bg-blue-500 text-white rounded-lg">Show Graph as JSON</button>
+      <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
+      <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
+    </div>
+    <div v-if="showJsonViewer" class="fixed inset-0 z-50">
+      <GraphJsonViewer :json="graphJson" @close="toggleJsonViewer" />
+    </div>
   </div>
 </template>
 
@@ -12,10 +18,20 @@ import * as d3 from 'd3'
 import axios from 'axios'
 import { useGraphStore } from '../stores/useGraphStore'
 import NodeEditor from './NodeEditor.vue'
+import GraphJsonViewer from './GraphJsonViewer.vue'
 
 const graphContainer = ref(null)
 const store = useGraphStore()
 const selectedNode = ref(null)
+const showJsonViewer = ref(false)
+const graphJson = ref('')
+
+const toggleJsonViewer = () => {
+  showJsonViewer.value = !showJsonViewer.value
+  if (showJsonViewer.value) {
+    graphJson.value = JSON.stringify({ nodes: store.nodes, links: store.links }, null, 2)
+  }
+}
 
 onMounted(async () => {
   store.loadFromLocalStorage()
