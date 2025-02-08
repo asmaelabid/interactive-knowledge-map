@@ -1,8 +1,11 @@
 <template>
-  <div class="relative h-screen w-full">
+  <div class="relative h-screen w-full bg-gray-50 dark:bg-gray-900">
     <div class="absolute inset-0 flex flex-col" :class="{ 'blur-sm': showJsonViewer }">
       <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
-      <button @click="toggleJsonViewer" class="p-2 m-4 bg-blue-500 text-white rounded-lg">Show Graph as JSON</button>
+      <button @click="toggleJsonViewer"
+        class="mx-4 mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+        Show Graph as JSON
+      </button>
       <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
       <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
     </div>
@@ -100,12 +103,15 @@ onMounted(async () => {
 
   node.append('circle')
     .attr('r', 12)
-    .attr('class', 'node-circle')
+    .attr('class', 'transition-all duration-200')
+    .attr('fill', 'rgb(59 130 246)')
+    .attr('stroke', 'rgb(37 99 235)')
+    .attr('stroke-width', 2)
 
   node.append('text')
     .attr('x', 16)
     .attr('y', 4)
-    .attr('class', 'node-text')
+    .attr('class', 'text-sm font-medium fill-gray-700 dark:fill-gray-200')
     .text(d => d.name)
 
   node.selectAll('circle')
@@ -207,7 +213,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Base theme variables */
 :root {
   --node-gradient-from: #60a5fa;
   --node-gradient-to: #3b82f6;
@@ -216,7 +221,6 @@ onMounted(async () => {
   --text-color: #1f2937;
 }
 
-/* Dark mode variables */
 :root.dark {
   --node-gradient-from: #818cf8;
   --node-gradient-to: #6366f1;
@@ -224,8 +228,6 @@ onMounted(async () => {
   --link-color: #64748b;
   --text-color: #f1f5f9;
 }
-
-/* SVG container */
 svg {
   display: block;
   width: 100%;
@@ -234,7 +236,6 @@ svg {
   overflow: visible;
 }
 
-/* Links styling */
 .links line {
   stroke: var(--link-color);
   stroke-opacity: 0.6;
@@ -242,7 +243,6 @@ svg {
   stroke-linecap: round;
 }
 
-/* Nodes styling */
 .nodes circle.node-circle {
   fill: var(--node-gradient-from);
   stroke: var(--node-stroke);

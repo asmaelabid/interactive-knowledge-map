@@ -11,10 +11,4 @@
 </script>
 
 <style scoped>
-nav {
-  margin-bottom: 1em;
-}
-nav a {
-  margin-right: 1em;
-}
 </style>
