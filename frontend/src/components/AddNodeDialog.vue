@@ -43,10 +43,18 @@ async function addNode() {
     loading.value = false
   }
 }
+function handleClickOutside(event: MouseEvent) {
+  const dialog = event.target as HTMLElement
+  if (dialog.classList.contains('backdrop-blur-sm')) {
+    emit('close')
+  }
+}
+
 </script>
 
 <template>
-  <div class="fixed inset-0 flex items-center justify-center bg-gray-500/50 dark:bg-gray-900/50 backdrop-blur-sm">
+  <div class="fixed inset-0 flex items-center justify-center bg-gray-500/50 dark:bg-gray-900/50 backdrop-blur-sm"
+    @click="handleClickOutside">
     <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-xl relative max-w-md w-full">
       <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Add New Node</h2>
       <label class="block mb-4">
