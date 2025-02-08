@@ -45,8 +45,8 @@ onMounted(async () => {
         name: d.name,
         x: storedNode.x,
         y: storedNode.y,
-        fx: storedNode.x,
-        fy: storedNode.y
+        // fx: storedNode.x,
+        // fy: storedNode.y
       }
     }
     return { id: d.id, name: d.name }
@@ -74,15 +74,8 @@ onMounted(async () => {
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force('x', d3.forceX(width / 2).strength(0.1))
-    .force('y', d3.forceY(height / 2).strength(0.1))
-    .force('collision', d3.forceCollide().radius(50))
-    .force('bounds', () => {
-      nodes.forEach(node => {
-        node.x = Math.max(20, Math.min(width - 20, node.x))
-        node.y = Math.max(20, Math.min(height - 20, node.y))
-      })
-    })
+    .force('x', d3.forceX(width / 2).strength(0.01))
+    .force('y', d3.forceY(height / 2).strength(0.01))
 
   simulation.nodes(nodes)
   const link = svg.append('g')
