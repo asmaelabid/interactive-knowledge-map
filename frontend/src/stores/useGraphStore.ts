@@ -1,15 +1,31 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export const useGraphStore = defineStore("graph", () => {
-  const nodes = ref<any[]>([]);
-  const links = ref<any[]>([]);
+interface GraphNode {
+  id: string;
+  name: string;
+  x?: number;
+  y?: number;
+}
 
-  function initializeNodes(newNodes: any[]) {
-    nodes.value = newNodes;
+interface GraphLink {
+  source: string;
+  target: string;
+}
+
+export const useGraphStore = defineStore("graph", () => {
+  const nodes = ref<GraphNode[]>([]);
+  const links = ref<GraphLink[]>([]);
+
+  function initializeNodes(newNodes: GraphNode[]) {
+    const savedNodes = loadFromLocalStorage();
+    nodes.value = newNodes.map(node => ({
+      ...node,
+      ...(savedNodes.find(n => n.id === node.id) || {})
+    }));
   }
 
-  function initializeLinks(newLinks: any[]) {
+  function initializeLinks(newLinks: GraphLink[]) {
     links.value = newLinks;
   }
 
@@ -24,9 +40,7 @@ export const useGraphStore = defineStore("graph", () => {
 
   function loadFromLocalStorage() {
     const savedNodes = localStorage.getItem("graph-nodes");
-    if (savedNodes) {
-      nodes.value = JSON.parse(savedNodes);
-    }
+    return savedNodes ? JSON.parse(savedNodes) : [];
   }
 
   function saveToLocalStorage() {
@@ -40,6 +54,5 @@ export const useGraphStore = defineStore("graph", () => {
     initializeLinks,
     updateNodePosition,
     loadFromLocalStorage,
-    saveToLocalStorage,
   };
 });

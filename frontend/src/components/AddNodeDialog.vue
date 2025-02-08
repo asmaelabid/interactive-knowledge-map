@@ -3,19 +3,18 @@ import { ref } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toast-notification'
 import Button from './ui/Button.vue'
+import { useCourseStore } from '../stores/useCourseStore'
 
 const emit = defineEmits(['close'])
 const toast = useToast()
 const loading = ref(false)
 const nodeName = ref('')
+const courseStore = useCourseStore()
 
 async function addNode() {
   loading.value = true
   try {
-    await axios.post('http://localhost:8000/api/v1/courses', {
-      name: nodeName.value,
-      parent_id: null
-    })
+    await courseStore.addCourse(nodeName.value)
     toast.success('Node added successfully')
     emit('close')
   } catch (error) {

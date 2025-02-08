@@ -14,9 +14,12 @@
 import { onMounted, ref } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
-import { useGraphStore } from '../stores/useGraphStore'
 import NodeEditor from './NodeEditor.vue'
 import GraphJsonViewer from './GraphJsonViewer.vue'
+import { useGraphStore } from '../stores/useGraphStore'
+import { useCourseStore } from '../stores/useCourseStore'
+
+
 
 const props = withDefaults(defineProps<{
   showJsonViewer?: boolean
@@ -28,17 +31,18 @@ const props = withDefaults(defineProps<{
 
 const selectedNode = ref(null)
 const graphContainer = ref(null)
-const store = useGraphStore()
+const courseStore = useCourseStore()
+const graphStore = useGraphStore()
 
 const emit = defineEmits(['closeJsonViewer'])
 
 onMounted(async () => {
-  store.loadFromLocalStorage()
-  const response = await axios.get('http://localhost:8000/api/v1/courses')
-  const data = response.data
+  graphStore.loadFromLocalStorage()
+  await courseStore.fetchCourses()
+  // const data = response.data
 
-  const nodes = data.map(d => {
-    const storedNode = store.nodes.find(n => n.id === d.id)
+  const nodes = courseStore.courses.map(d => {
+    const storedNode = graphStore.nodes.find(n => n.id === d.id)
     if (storedNode) {
       return {
         id: d.id,
@@ -52,12 +56,12 @@ onMounted(async () => {
     return { id: d.id, name: d.name }
   })
 
-  const links = data
+  const links = courseStore.courses
     .filter(d => d.parent_id !== null)
     .map(d => ({ source: d.parent_id, target: d.id }))
 
-  store.initializeNodes(nodes)
-  store.initializeLinks(links)
+  graphStore.initializeNodes(nodes)
+  graphStore.initializeLinks(links)
 
   const width = graphContainer.value?.clientWidth || 800
   const height = graphContainer.value?.clientHeight || 600
@@ -70,18 +74,18 @@ onMounted(async () => {
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('class', 'rounded-lg')
 
-  const simulation = d3.forceSimulation(nodes)
+  const simulation = d3.forceSimulation(graphStore.nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force('x', d3.forceX(width / 2).strength(0.01))
     .force('y', d3.forceY(height / 2).strength(0.01))
 
-  simulation.nodes(nodes)
+  simulation.nodes(graphStore.nodes)
   const link = svg.append('g')
     .attr('class', 'links')
     .selectAll('line')
-    .data(links)
+    .data(graphStore.links)
     .enter()
     .append('line')
     .attr('class', 'transition-all duration-50 ease-in-out')
@@ -91,7 +95,7 @@ onMounted(async () => {
   const node = svg.append('g')
     .attr('class', 'nodes')
     .selectAll('g')
-    .data(nodes)
+    .data(graphStore.nodes)
     .enter()
     .append('g')
     .attr('class', 'cursor-pointer')
@@ -201,7 +205,7 @@ onMounted(async () => {
     d.y = y
     d.fx = null
     d.fy = null
-    store.updateNodePosition(d.id, x, y)
+    graphStore.updateNodePosition(d.id, x, y)
     simulation.alpha(0.1).restart()
 
     node.selectAll('circle')
