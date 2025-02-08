@@ -1,16 +1,11 @@
 <template>
   <div class="relative h-screen w-full bg-gray-50 dark:bg-gray-900">
     <div class="absolute inset-0 flex flex-col" :class="{ 'blur-sm': showJsonViewer }">
-      <h1 class="p-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Graph</h1>
-      <button @click="toggleJsonViewer"
-        class="mx-4 mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
-        Show Graph as JSON
-      </button>
       <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
       <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
     </div>
     <div v-if="showJsonViewer" class="fixed inset-0 z-50">
-      <GraphJsonViewer :json="graphJson" @close="toggleJsonViewer" />
+      <GraphJsonViewer :json="graphJson" @close="$emit('closeJsonViewer')" />
     </div>
   </div>
 </template>
@@ -23,18 +18,19 @@ import { useGraphStore } from '../stores/useGraphStore'
 import NodeEditor from './NodeEditor.vue'
 import GraphJsonViewer from './GraphJsonViewer.vue'
 
+const props = withDefaults(defineProps<{
+  showJsonViewer?: boolean
+  graphJson?: string
+}>(), {
+  showJsonViewer: false,
+  graphJson: ''
+})
+
+const selectedNode = ref(null)
 const graphContainer = ref(null)
 const store = useGraphStore()
-const selectedNode = ref(null)
-const showJsonViewer = ref(false)
-const graphJson = ref('')
 
-const toggleJsonViewer = () => {
-  showJsonViewer.value = !showJsonViewer.value
-  if (showJsonViewer.value) {
-    graphJson.value = JSON.stringify({ nodes: store.nodes, links: store.links }, null, 2)
-  }
-}
+const emit = defineEmits(['closeJsonViewer'])
 
 onMounted(async () => {
   store.loadFromLocalStorage()
@@ -55,10 +51,13 @@ onMounted(async () => {
     }
     return { id: d.id, name: d.name }
   })
-  store.initializeNodes(nodes);
+
   const links = data
     .filter(d => d.parent_id !== null)
     .map(d => ({ source: d.parent_id, target: d.id }))
+
+  store.initializeNodes(nodes)
+  store.initializeLinks(links)
 
   const width = graphContainer.value?.clientWidth || 800
   const height = graphContainer.value?.clientHeight || 600
@@ -71,14 +70,14 @@ onMounted(async () => {
     .attr('preserveAspectRatio', 'xMidYMid meet')
     .attr('class', 'rounded-lg')
 
-    const simulation = d3.forceSimulation(nodes)
+  const simulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force('x', d3.forceX(width / 2).strength(0.1)) // increased strength
-    .force('y', d3.forceY(height / 2).strength(0.1)) // increased strength
-    .force('collision', d3.forceCollide().radius(50)) // add collision force
-    .force('bounds', () => { // add custom bounds force
+    .force('x', d3.forceX(width / 2).strength(0.1))
+    .force('y', d3.forceY(height / 2).strength(0.1))
+    .force('collision', d3.forceCollide().radius(50))
+    .force('bounds', () => {
       nodes.forEach(node => {
         node.x = Math.max(20, Math.min(width - 20, node.x))
         node.y = Math.max(20, Math.min(height - 20, node.y))

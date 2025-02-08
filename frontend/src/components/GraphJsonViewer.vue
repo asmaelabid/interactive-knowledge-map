@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
-
-const props = defineProps<{ json: string }>()
+defineProps<{ json: string }>()
+defineEmits(['close']) 
 </script>

@@ -1,72 +1,45 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import axios from "axios";
 
 export const useGraphStore = defineStore("graph", () => {
-  const nodes = ref([]);
+  const nodes = ref<any[]>([]);
+  const links = ref<any[]>([]);
 
-  async function fetchNodes() {
-    const response = await axios.get('http://localhost:8000/api/v1/courses')
-    const data = response.data
-    initializeNodes(data)
+  function initializeNodes(newNodes: any[]) {
+    nodes.value = newNodes;
   }
 
-  function initializeNodes(newNodes) {
-    const storedNodes = JSON.parse(localStorage.getItem("graphNodes") || "[]");
-
-    nodes.value = newNodes.map((node) => {
-      const existingNode = storedNodes.find((n) => n.id === node.id);
-      if (existingNode && existingNode.wasPositioned) {
-        return {
-          ...node,
-          x: existingNode.x,
-          y: existingNode.y,
-          fx: existingNode.x,
-          fy: existingNode.y,
-          wasPositioned: true
-        };
-      }
-      return {
-        ...node,
-        wasPositioned: false
-      };
-    });
-
-    if (!storedNodes.length) {
-      setTimeout(() => {
-        saveToLocalStorage();
-      }, 2000);
-    }
+  function initializeLinks(newLinks: any[]) {
+    links.value = newLinks;
   }
 
-  function updateNodePosition(id, x, y) {
-    const node = nodes.value.find((node) => node.id === id);
+  function updateNodePosition(id: string, x: number, y: number) {
+    const node = nodes.value.find((n) => n.id === id);
     if (node) {
       node.x = x;
       node.y = y;
-      node.fx = x;
-      node.fy = y;
-      node.wasPositioned = true;
-      saveToLocalStorage();
+    }
+    saveToLocalStorage();
+  }
+
+  function loadFromLocalStorage() {
+    const savedNodes = localStorage.getItem("graph-nodes");
+    if (savedNodes) {
+      nodes.value = JSON.parse(savedNodes);
     }
   }
 
   function saveToLocalStorage() {
-    localStorage.setItem("graphNodes", JSON.stringify(nodes.value));
-  }
-
-  function loadFromLocalStorage() {
-    const storedNodes = localStorage.getItem("graphNodes");
-    if (storedNodes) {
-      nodes.value = JSON.parse(storedNodes);
-    }
+    localStorage.setItem("graph-nodes", JSON.stringify(nodes.value));
   }
 
   return {
     nodes,
+    links,
     initializeNodes,
+    initializeLinks,
     updateNodePosition,
     loadFromLocalStorage,
-    fetchNodes,
+    saveToLocalStorage,
   };
 });

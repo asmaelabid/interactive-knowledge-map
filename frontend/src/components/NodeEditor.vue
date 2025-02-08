@@ -9,21 +9,15 @@
         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" />
     </label>
     <div class="flex space-x-3">
-      <button @click="updateNode"
-        class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
-        :disabled="loading">
+      <Button variant="primary" :disabled="loading" @click="updateNode">
         Update
-      </button>
-      <button @click="removeNode"
-        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors disabled:opacity-50"
-        :disabled="loading">
+      </Button>
+      <Button variant="danger" :disabled="loading" @click="removeNode">
         Remove
-      </button>
-      <button @click="closeEditor"
-        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors disabled:opacity-50"
-        :disabled="loading">
+      </Button>
+      <Button variant="secondary" :disabled="loading" @click="closeEditor">
         Close
-      </button>
+      </Button>
     </div>
     <div v-if="loading" class="mt-2 text-center text-gray-500 dark:text-gray-400">Loading...</div>
   </div>
@@ -33,6 +27,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toast-notification'
+import Button from './ui/Button.vue';
 
 const props = defineProps<{ node: any }>()
 const emit = defineEmits(['close'])
