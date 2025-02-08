@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
-
+import { useGraphStore } from "./useGraphStore";
 interface Course {
   id: string;
   name: string;
@@ -12,19 +12,26 @@ export const useCourseStore = defineStore("courses", () => {
   const courses = ref<Course[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const graphStore = useGraphStore();
 
   async function fetchCourses() {
-    if (courses.value.length > 0) return;
-    
     isLoading.value = true;
     error.value = null;
-    
+
     try {
-      const response = await axios.get('http://localhost:8000/api/v1/courses');
-      courses.value = response.data;
+      const response = await axios.get("http://localhost:8000/api/v1/courses");
+      const fetchedCourses = response.data;
+      const deletedNodeIds = graphStore.nodes
+        .filter(
+          (node) => !fetchedCourses.some((course) => course.id === node.id)
+        )
+        .map((node) => node.id);
+      courses.value = fetchedCourses.filter(
+        (course) => !deletedNodeIds.includes(course.id)
+      );
     } catch (err) {
-      error.value = 'Failed to fetch courses';
-      console.error('Failed to fetch courses:', err);
+      error.value = "Failed to fetch courses";
+      console.error("Failed to fetch courses:", err);
     } finally {
       isLoading.value = false;
     }
@@ -33,17 +40,20 @@ export const useCourseStore = defineStore("courses", () => {
   async function addCourse(name: string, parentId: string | null = null) {
     isLoading.value = true;
     error.value = null;
-    
+
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/courses', {
-        name,
-        parent_id: parentId
-      });
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/courses",
+        {
+          name,
+          parent_id: parentId,
+        }
+      );
       courses.value.push(response.data);
       return response.data;
     } catch (err) {
-      error.value = 'Failed to add course';
-      console.error('Failed to add course:', err);
+      error.value = "Failed to add course";
+      console.error("Failed to add course:", err);
       throw err;
     } finally {
       isLoading.value = false;

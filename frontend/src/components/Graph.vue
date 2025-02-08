@@ -37,21 +37,58 @@ const svg = ref(null)
 const simulation = ref(null)
 const emit = defineEmits(['closeJsonViewer'])
 
+function clearGraph() {
+  if (!svg.value) return
+  svg.value.select('.nodes').selectAll('*').remove()
+  svg.value.select('.links').selectAll('*').remove()
+
+  if (simulation.value) {
+    simulation.value.stop()
+    simulation.value = null
+  }
+}
+
+function reinitializeSimulation() {
+  if (!graphContainer.value) return
+
+  const width = graphContainer.value.clientWidth
+  const height = graphContainer.value.clientHeight
+
+  d3.select(graphContainer.value).selectAll('svg').remove()
+
+  svg.value = d3.select(graphContainer.value)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .attr('class', 'rounded-lg')
+
+  svg.value.append('g').attr('class', 'links')
+  svg.value.append('g').attr('class', 'nodes')
+
+  clearGraph()
+  simulation.value = d3.forceSimulation(graphStore.nodes)
+    .force('link', d3.forceLink(graphStore.links).id((d: any) => d.id).distance(200))
+    .force('charge', d3.forceManyBody().strength(-100))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('x', d3.forceX(width / 2).strength(0.01))
+    .force('y', d3.forceY(height / 2).strength(0.01))
+
+  updateGraph()
+}
+
 function updateGraph() {
   if (!svg.value || !simulation.value) return
 
-  // Update nodes
   const node = svg.value.select('.nodes').selectAll('g')
     .data(graphStore.nodes, (d: any) => d.id)
 
-  // Remove old nodes
   node.exit().remove()
 
-  // Update existing nodes
   node.select('text')
     .text(d => d.name)
 
-  // Add new nodes
   const nodeEnter = node.enter()
     .append('g')
     .attr('class', 'cursor-pointer')
@@ -73,7 +110,6 @@ function updateGraph() {
     .attr('class', 'text-sm font-medium fill-gray-700 dark:fill-gray-200')
     .text(d => d.name)
 
-  // Add event listeners to new nodes
   nodeEnter.selectAll('circle')
     .on('mouseover', function () {
       d3.select(this)
@@ -90,32 +126,31 @@ function updateGraph() {
         .attr('fill', 'var(--node-gradient-from)')
     })
     .on('dblclick', function (event, d) {
-      selectedNode.value = d
+      const updatedNode = graphStore.nodes.find(n => n.id === d.id)
+      selectedNode.value = updatedNode || null
     })
 
-  // Update links
   const link = svg.value.select('.links').selectAll('line')
     .data(graphStore.links, (d: any) => `${d.source.id}-${d.target.id}`)
 
-  // Remove old links
+  simulation.value
+    .nodes(graphStore.nodes)
+    .force('link', d3.forceLink(graphStore.links).id((d: any) => d.id).distance(200))
+
   link.exit().remove()
 
-  // Add new links
   const linkEnter = link.enter()
     .append('line')
     .attr('class', 'transition-all duration-50 ease-in-out')
     .attr('stroke-width', 2)
     .attr('stroke', '#999')
 
-  // Merge new and existing elements
   const allNodes = node.merge(nodeEnter)
   const allLinks = link.merge(linkEnter)
 
-  // Update simulation
   simulation.value.nodes(graphStore.nodes)
   simulation.value.force('link').links(graphStore.links)
 
-  // Update positions on tick
   simulation.value.on('tick', () => {
     allLinks
       .attr('x1', d => d.source.x)
@@ -127,17 +162,56 @@ function updateGraph() {
       .attr('transform', d => `translate(${d.x},${d.y})`)
   })
 
-  // Restart simulation
   simulation.value.alpha(1).restart()
 }
-// Watch for changes in the stores
-watch(() => graphStore.nodes, updateGraph, { deep: true })
-watch(() => graphStore.links, updateGraph, { deep: true })
+watch(
+  [
+    () => graphStore.nodes.length,
+    () => graphStore.links.length,
+    () => [...graphStore.nodes],
+  ],
+  ([newNodesLength, newLinksLength], [oldNodesLength, oldLinksLength]) => {
+    if (newNodesLength !== oldNodesLength || newLinksLength !== oldLinksLength) {
+      reinitializeSimulation()
+    } else {
+      updateGraph()
+    }
+  },
+  { deep: true } 
+)
+function dragstarted(event, d) {
+  if (!event.active) simulation.value.alphaTarget(0.3).restart()
+  d.fx = d.x
+  d.fy = d.y
+}
 
+function dragged(event, d) {
+  const padding = 20
+  const width = graphContainer.value?.clientWidth || 800
+  const height = graphContainer.value?.clientHeight || 600
+
+  d.fx = Math.max(padding, Math.min(width - padding, event.x))
+  d.fy = Math.max(padding, Math.min(height - padding, event.y))
+}
+
+function dragended(event, d) {
+  const width = graphContainer.value?.clientWidth || 800
+  const height = graphContainer.value?.clientHeight || 600
+
+  if (!event.active) simulation.value?.alphaTarget(0)
+  const x = Math.max(0, Math.min(width, event.x))
+  const y = Math.max(0, Math.min(height, event.y))
+  d.x = x
+  d.y = y
+  d.fx = null
+  d.fy = null
+  graphStore.updateNodePosition(d.id, x, y)
+  simulation.value?.alpha(0.1).restart()
+
+}
 onMounted(async () => {
   graphStore.loadFromLocalStorage()
   await courseStore.fetchCourses()
-  // const data = response.data
 
   const nodes = courseStore.courses.map(d => {
     const storedNode = graphStore.nodes.find(n => n.id === d.id)
@@ -147,8 +221,6 @@ onMounted(async () => {
         name: d.name,
         x: storedNode.x,
         y: storedNode.y,
-        // fx: storedNode.x,
-        // fy: storedNode.y
       }
     }
     return { id: d.id, name: d.name }
@@ -261,8 +333,8 @@ onMounted(async () => {
         .attr('stroke', '#999')
     })
     .on('dblclick', function (event, d) {
-      console.log('Double clicked on:', d)
-      selectedNode.value = d
+      const updatedNode = graphStore.nodes.find(n => n.id === d.id)
+      selectedNode.value = updatedNode || null
     })
 
   simulation.on('tick', () => {
@@ -279,42 +351,8 @@ onMounted(async () => {
     node
       .attr('transform', d => `translate(${d.x},${d.y})`)
   })
+  reinitializeSimulation()
 
-  function dragstarted(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart()
-    d.fx = d.x
-    d.fy = d.y
-  }
-
-  function dragged(event, d) {
-    const padding = 20
-    const width = graphContainer.value?.clientWidth || 800
-    const height = graphContainer.value?.clientHeight || 600
-
-    d.fx = Math.max(padding, Math.min(width - padding, event.x))
-    d.fy = Math.max(padding, Math.min(height - padding, event.y))
-  }
-
-  function dragended(event, d) {
-    if (!event.active) simulation.alphaTarget(0)
-    const x = Math.max(0, Math.min(width, event.x))
-    const y = Math.max(0, Math.min(height, event.y))
-    d.x = x
-    d.y = y
-    d.fx = null
-    d.fy = null
-    graphStore.updateNodePosition(d.id, x, y)
-    simulation.alpha(0.1).restart()
-
-    node.selectAll('circle')
-      .transition()
-      .duration(50)
-      .attr('fill', 'var(--node-gradient-from)')
-    link
-      .transition()
-      .duration(50)
-      .attr('stroke', '#999')
-  }
 })
 </script>
 

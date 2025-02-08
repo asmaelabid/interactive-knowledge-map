@@ -19,10 +19,11 @@ export const useGraphStore = defineStore("graph", () => {
 
   function initializeNodes(newNodes: GraphNode[]) {
     const savedNodes = loadFromLocalStorage();
-    nodes.value = newNodes.map(node => ({
+    nodes.value = newNodes.map((node) => ({
       ...node,
-      ...(savedNodes.find(n => n.id === node.id) || {})
+      ...(savedNodes.find((n) => n.id === node.id) || {}),
     }));
+    saveToLocalStorage();
   }
 
   function initializeLinks(newLinks: GraphLink[]) {
@@ -47,7 +48,7 @@ export const useGraphStore = defineStore("graph", () => {
     localStorage.setItem("graph-nodes", JSON.stringify(nodes.value));
   }
   function updateNode(nodeId: string, newData: Partial<GraphNode>) {
-    const nodeIndex = nodes.value.findIndex(n => n.id === nodeId);
+    const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId);
     if (nodeIndex !== -1) {
       nodes.value[nodeIndex] = { ...nodes.value[nodeIndex], ...newData };
       saveToLocalStorage();
@@ -55,12 +56,12 @@ export const useGraphStore = defineStore("graph", () => {
   }
 
   function removeNode(nodeId: string) {
-    nodes.value = nodes.value.filter(n => n.id !== nodeId);
-    links.value = links.value.filter(l => l.source !== nodeId && l.target !== nodeId);
+    nodes.value = nodes.value.filter((n) => n.id !== nodeId);
+    links.value = links.value.filter(
+      (l) => l.source !== nodeId && l.target !== nodeId
+    );
     saveToLocalStorage();
   }
-
-
 
   return {
     nodes,
@@ -70,6 +71,6 @@ export const useGraphStore = defineStore("graph", () => {
     updateNodePosition,
     loadFromLocalStorage,
     updateNode,
-    removeNode
+    removeNode,
   };
 });

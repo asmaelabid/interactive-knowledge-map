@@ -55,6 +55,22 @@ async function updateNode() {
     })
     graphStore.updateNode(node.value.id, { name: node.value.name })
     await courseStore.fetchCourses()
+    const nodes = courseStore.courses.map(d => {
+      const storedNode = graphStore.nodes.find(n => n.id === d.id)
+      return {
+        id: d.id,
+        name: d.name,
+        x: storedNode?.x,
+        y: storedNode?.y
+      }
+    })
+
+    const links = courseStore.courses
+      .filter(d => d.parent_id !== null)
+      .map(d => ({ source: d.parent_id, target: d.id }))
+
+    graphStore.initializeNodes(nodes)
+    graphStore.initializeLinks(links)
 
     toastMessage.value = 'Node updated successfully'
     toast.success(toastMessage.value)
@@ -74,6 +90,24 @@ async function removeNode() {
     await axios.delete(`http://localhost:8000/api/v1/courses/${node.value.id}`)
     graphStore.removeNode(node.value.id)
     await courseStore.fetchCourses()
+
+    const nodes = courseStore.courses.map(d => {
+      const storedNode = graphStore.nodes.find(n => n.id === d.id)
+      return {
+        id: d.id,
+        name: d.name,
+        x: storedNode?.x,
+        y: storedNode?.y
+      }
+    })
+
+    const links = courseStore.courses
+      .filter(d => d.parent_id !== null)
+      .map(d => ({ source: d.parent_id, target: d.id }))
+
+    graphStore.initializeNodes(nodes)
+    graphStore.initializeLinks(links)
+
     toastMessage.value = 'Node removed successfully'
     toast.success(toastMessage.value)
     emit('close')
