@@ -8,6 +8,11 @@
       <input v-model="node.name"
         class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" />
     </label>
+    <label class="block mb-4">
+      <span class="text-gray-700 dark:text-gray-200">Parent Name:</span>
+      <input v-model="node.parent_name"
+        class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" />
+    </label>
     <div class="flex space-x-3">
       <Button variant="primary" :disabled="loading" @click="updateNode">
         Update
@@ -51,7 +56,7 @@ async function updateNode() {
   try {
     await axios.put(`http://localhost:8000/api/v1/courses/${node.value.id}`, {
       name: node.value.name,
-      parent_id: node.value.parent_id
+      parent_name: node.value.parent_name
     })
     graphStore.updateNode(node.value.id, { name: node.value.name })
     await courseStore.fetchCourses()

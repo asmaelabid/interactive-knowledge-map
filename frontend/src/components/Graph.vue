@@ -127,7 +127,12 @@ function updateGraph() {
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
-      selectedNode.value = updatedNode || null
+      const courseData = courseStore.courses.find(c => c.id === d.id)
+      selectedNode.value = updatedNode ? {
+        ...updatedNode,
+        parent_name: courseData?.parent_name || null
+      } : null
+
     })
 
   const link = svg.value.select('.links').selectAll('line')
@@ -177,7 +182,7 @@ watch(
       updateGraph()
     }
   },
-  { deep: true } 
+  { deep: true }
 )
 function dragstarted(event, d) {
   if (!event.active) simulation.value.alphaTarget(0.3).restart()
@@ -334,7 +339,12 @@ onMounted(async () => {
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
-      selectedNode.value = updatedNode || null
+      const courseData = courseStore.courses.find(c => c.id === d.id)
+      selectedNode.value = updatedNode ? {
+        ...updatedNode,
+        parent_name: courseData?.parent_name || null
+      } : null
+
     })
 
   simulation.on('tick', () => {
@@ -372,6 +382,7 @@ onMounted(async () => {
   --link-color: #64748b;
   --text-color: #f1f5f9;
 }
+
 svg {
   display: block;
   width: 100%;
