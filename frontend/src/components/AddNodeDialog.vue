@@ -4,17 +4,36 @@ import axios from 'axios'
 import { useToast } from 'vue-toast-notification'
 import Button from './ui/Button.vue'
 import { useCourseStore } from '../stores/useCourseStore'
+import { useGraphStore } from '../stores/useGraphStore'
 
 const emit = defineEmits(['close'])
 const toast = useToast()
 const loading = ref(false)
 const nodeName = ref('')
+const parentName = ref('')
 const courseStore = useCourseStore()
+const graphStore = useGraphStore()
 
 async function addNode() {
   loading.value = true
   try {
-    await courseStore.addCourse(nodeName.value)
+    await courseStore.addCourse(nodeName.value, parentName.value || null)
+    await courseStore.fetchCourses()
+    const nodes = courseStore.courses.map(d => {
+      const storedNode = graphStore.nodes.find(n => n.id === d.id)
+      return {
+        id: d.id,
+        name: d.name,
+        x: storedNode?.x,
+        y: storedNode?.y
+      }
+    })
+    const links = courseStore.courses
+      .filter(d => d.parent_id !== null)
+      .map(d => ({ source: d.parent_id, target: d.id }))
+    graphStore.initializeNodes(nodes)
+    graphStore.initializeLinks(links)
+
     toast.success('Node added successfully')
     emit('close')
   } catch (error) {
@@ -33,6 +52,11 @@ async function addNode() {
       <label class="block mb-4">
         <span class="text-gray-700 dark:text-gray-200">Name:</span>
         <input v-model="nodeName"
+          class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" />
+      </label>
+      <label class="block mb-4">
+        <span class="text-gray-700 dark:text-gray-200">Parent Name:</span>
+        <input v-model="parentName"
           class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" />
       </label>
       <div class="flex space-x-3">

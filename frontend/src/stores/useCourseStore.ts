@@ -6,6 +6,7 @@ interface Course {
   id: string;
   name: string;
   parent_id: string | null;
+  parent_name: string | null;
 }
 
 export const useCourseStore = defineStore("courses", () => {
@@ -46,7 +47,7 @@ export const useCourseStore = defineStore("courses", () => {
         "http://localhost:8000/api/v1/courses",
         {
           name,
-          parent_id: parentId,
+          parent_name: parentId,
         }
       );
       courses.value.push(response.data);
