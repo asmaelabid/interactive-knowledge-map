@@ -28,10 +28,14 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toast-notification'
 import Button from './ui/Button.vue';
+import { useGraphStore } from '../stores/useGraphStore'
+import { useCourseStore } from '../stores/useCourseStore'
+
 
 const props = defineProps<{ node: any }>()
 const emit = defineEmits(['close'])
-
+const graphStore = useGraphStore()
+const courseStore = useCourseStore()
 const node = ref({ ...props.node })
 const loading = ref(false)
 const toastMessage = ref('')
@@ -49,6 +53,9 @@ async function updateNode() {
       name: node.value.name,
       parent_id: node.value.parent_id
     })
+    graphStore.updateNode(node.value.id, { name: node.value.name })
+    await courseStore.fetchCourses()
+
     toastMessage.value = 'Node updated successfully'
     toast.success(toastMessage.value)
     emit('close')
@@ -65,6 +72,8 @@ async function removeNode() {
   loading.value = true
   try {
     await axios.delete(`http://localhost:8000/api/v1/courses/${node.value.id}`)
+    graphStore.removeNode(node.value.id)
+    await courseStore.fetchCourses()
     toastMessage.value = 'Node removed successfully'
     toast.success(toastMessage.value)
     emit('close')

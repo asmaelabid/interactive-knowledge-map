@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import * as d3 from 'd3'
 import axios from 'axios'
 import NodeEditor from './NodeEditor.vue'
@@ -33,8 +33,106 @@ const selectedNode = ref(null)
 const graphContainer = ref(null)
 const courseStore = useCourseStore()
 const graphStore = useGraphStore()
-
+const svg = ref(null)
+const simulation = ref(null)
 const emit = defineEmits(['closeJsonViewer'])
+
+function updateGraph() {
+  if (!svg.value || !simulation.value) return
+
+  // Update nodes
+  const node = svg.value.select('.nodes').selectAll('g')
+    .data(graphStore.nodes, (d: any) => d.id)
+
+  // Remove old nodes
+  node.exit().remove()
+
+  // Update existing nodes
+  node.select('text')
+    .text(d => d.name)
+
+  // Add new nodes
+  const nodeEnter = node.enter()
+    .append('g')
+    .attr('class', 'cursor-pointer')
+    .call(d3.drag()
+      .on('start', dragstarted)
+      .on('drag', dragged)
+      .on('end', dragended))
+
+  nodeEnter.append('circle')
+    .attr('r', 12)
+    .attr('class', 'transition-all duration-200')
+    .attr('fill', 'rgb(59 130 246)')
+    .attr('stroke', 'rgb(37 99 235)')
+    .attr('stroke-width', 2)
+
+  nodeEnter.append('text')
+    .attr('x', 16)
+    .attr('y', 4)
+    .attr('class', 'text-sm font-medium fill-gray-700 dark:fill-gray-200')
+    .text(d => d.name)
+
+  // Add event listeners to new nodes
+  nodeEnter.selectAll('circle')
+    .on('mouseover', function () {
+      d3.select(this)
+        .transition()
+        .duration(50)
+        .attr('r', 15)
+        .attr('fill', 'orange')
+    })
+    .on('mouseout', function () {
+      d3.select(this)
+        .transition()
+        .duration(50)
+        .attr('r', 12)
+        .attr('fill', 'var(--node-gradient-from)')
+    })
+    .on('dblclick', function (event, d) {
+      selectedNode.value = d
+    })
+
+  // Update links
+  const link = svg.value.select('.links').selectAll('line')
+    .data(graphStore.links, (d: any) => `${d.source.id}-${d.target.id}`)
+
+  // Remove old links
+  link.exit().remove()
+
+  // Add new links
+  const linkEnter = link.enter()
+    .append('line')
+    .attr('class', 'transition-all duration-50 ease-in-out')
+    .attr('stroke-width', 2)
+    .attr('stroke', '#999')
+
+  // Merge new and existing elements
+  const allNodes = node.merge(nodeEnter)
+  const allLinks = link.merge(linkEnter)
+
+  // Update simulation
+  simulation.value.nodes(graphStore.nodes)
+  simulation.value.force('link').links(graphStore.links)
+
+  // Update positions on tick
+  simulation.value.on('tick', () => {
+    allLinks
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y)
+
+    allNodes
+      .attr('transform', d => `translate(${d.x},${d.y})`)
+  })
+
+  // Restart simulation
+  simulation.value.alpha(1).restart()
+}
+// Watch for changes in the stores
+watch(() => graphStore.nodes, updateGraph, { deep: true })
+watch(() => graphStore.links, updateGraph, { deep: true })
 
 onMounted(async () => {
   graphStore.loadFromLocalStorage()
