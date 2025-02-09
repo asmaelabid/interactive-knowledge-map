@@ -5,3 +5,4 @@ asyncpg==0.29.0
 python-dotenv==1.0.0
 alembic==1.12.1
 pydantic==2.4.2
+psycopg2-binary==2.9.9

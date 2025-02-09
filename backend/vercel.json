@@ -10,13 +10,10 @@
         {
             "src": "/api/v1/(.*)",
             "dest": "app/main.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "app/main.py"
         }
     ],
     "env": {
-        "PYTHONPATH": "."
+        "PYTHONPATH": ".",
+        "PYTHON_VERSION": "3.9"
     }
 }
