@@ -21,13 +21,13 @@ const handleShowJson = () => {
 </script>
 
 <template>
-  <header class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-    <div class="flex items-center gap-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Course Manager</h1>
+  <header class="flex items-center justify-between p-6 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-gray-700 dark:to-gray-900 shadow-lg">
+    <div class="flex items-center gap-6">
+      <h1 class="text-3xl font-extrabold text-white dark:text-gray-100">Course Manager</h1>
       <Button variant="primary" @click="handleAddNode">Add Node</Button>
       <Button variant="secondary" @click="handleShowJson">Show Graph as JSON</Button>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-6">
       <ThemeToggle />
       <Button variant="danger">Logout</Button>
     </div>

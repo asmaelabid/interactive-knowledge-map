@@ -19,8 +19,6 @@ import GraphJsonViewer from './GraphJsonViewer.vue'
 import { useGraphStore } from '../stores/useGraphStore'
 import { useCourseStore } from '../stores/useCourseStore'
 
-
-
 const props = withDefaults(defineProps<{
   showJsonViewer?: boolean
   graphJson?: string
@@ -36,6 +34,18 @@ const graphStore = useGraphStore()
 const svg = ref(null)
 const simulation = ref(null)
 const emit = defineEmits(['closeJsonViewer'])
+
+const getNodeColors = (isDark: boolean, isHovered: boolean) => {
+  return isDark 
+    ? {
+        fill: isHovered ? 'rgb(129 140 248)' : 'rgb(99 102 241)',
+        stroke: isHovered ? 'rgb(79 70 229)' : 'rgb(67 56 202)'  
+      }
+    : {
+        fill: isHovered ? 'rgb(96 165 250)' : 'rgb(59 130 246)',
+        stroke: isHovered ? 'rgb(37 99 235)' : 'rgb(29 78 216)' 
+      }
+}
 
 function clearGraph() {
   if (!svg.value) return
@@ -99,9 +109,7 @@ function updateGraph() {
 
   nodeEnter.append('circle')
     .attr('r', 12)
-    .attr('class', 'transition-all duration-200')
-    .attr('fill', 'rgb(59 130 246)')
-    .attr('stroke', 'rgb(37 99 235)')
+    .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
     .attr('stroke-width', 2)
 
   nodeEnter.append('text')
@@ -111,19 +119,27 @@ function updateGraph() {
     .text(d => d.name)
 
   nodeEnter.selectAll('circle')
-    .on('mouseover', function () {
+  .on('mouseover', function () {
+      const isDark = document.documentElement.classList.contains('dark')
+      const colors = getNodeColors(isDark, true)
+      
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 15)
-        .attr('fill', 'orange')
+        .attr('fill', colors.fill)
+        .attr('stroke', colors.stroke)
     })
     .on('mouseout', function () {
+      const isDark = document.documentElement.classList.contains('dark')
+      const colors = getNodeColors(isDark, false)
+      
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 12)
-        .attr('fill', 'var(--node-gradient-from)')
+        .attr('fill', colors.fill)
+        .attr('stroke', colors.stroke)
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
@@ -146,9 +162,8 @@ function updateGraph() {
 
   const linkEnter = link.enter()
     .append('line')
-    .attr('class', 'transition-all duration-50 ease-in-out')
+    .attr('class', 'transition-all duration-50 ease-in-out stroke-gray-400 dark:stroke-gray-600')
     .attr('stroke-width', 2)
-    .attr('stroke', '#999')
 
   const allNodes = node.merge(nodeEnter)
   const allLinks = link.merge(linkEnter)
@@ -263,9 +278,8 @@ onMounted(async () => {
     .data(graphStore.links)
     .enter()
     .append('line')
-    .attr('class', 'transition-all duration-50 ease-in-out')
+    .attr('class', 'transition-all duration-50 ease-in-out stroke-gray-400 dark:stroke-gray-600')
     .attr('stroke-width', 2)
-    .attr('stroke', '#999')
 
   const node = svg.append('g')
     .attr('class', 'nodes')
@@ -281,9 +295,7 @@ onMounted(async () => {
 
   node.append('circle')
     .attr('r', 12)
-    .attr('class', 'transition-all duration-200')
-    .attr('fill', 'rgb(59 130 246)')
-    .attr('stroke', 'rgb(37 99 235)')
+    .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
     .attr('stroke-width', 2)
 
   node.append('text')
@@ -305,7 +317,7 @@ onMounted(async () => {
         .transition()
         .duration(50)
         .attr('r', 12)
-        .attr('fill', 'var(--node-gradient-from)')
+        .attr('fill', 'rgb(59 130 246)')
     })
     .on('mousedown', function (event, d) {
       link.each(function (l) {
@@ -331,11 +343,11 @@ onMounted(async () => {
       node.selectAll('circle')
         .transition()
         .duration(50)
-        .attr('fill', 'var(--node-gradient-from)')
+        .attr('fill', 'rgb(59 130 246)')
       link
         .transition()
         .duration(50)
-        .attr('stroke', '#999')
+        .attr('stroke', 'rgb(156 163 175)')
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
@@ -365,64 +377,3 @@ onMounted(async () => {
 
 })
 </script>
-
-<style scoped>
-:root {
-  --node-gradient-from: #60a5fa;
-  --node-gradient-to: #3b82f6;
-  --node-stroke: #2563eb;
-  --link-color: #94a3b8;
-  --text-color: #1f2937;
-}
-
-:root.dark {
-  --node-gradient-from: #818cf8;
-  --node-gradient-to: #6366f1;
-  --node-stroke: #4f46e5;
-  --link-color: #64748b;
-  --text-color: #f1f5f9;
-}
-
-svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 0.5rem;
-  overflow: visible;
-}
-
-.links line {
-  stroke: var(--link-color);
-  stroke-opacity: 0.6;
-  stroke-width: 2px;
-  stroke-linecap: round;
-}
-
-.nodes circle.node-circle {
-  fill: var(--node-gradient-from);
-  stroke: var(--node-stroke);
-  stroke-width: 2px;
-  filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.07));
-}
-
-.nodes text.node-text {
-  fill: var(--text-color);
-  font-size: 0.875rem;
-  font-weight: 500;
-  paint-order: stroke;
-  stroke: #ffffff;
-  stroke-width: 3px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Hover effects */
-.nodes g:hover circle.node-circle {
-  filter: drop-shadow(0 8px 6px rgb(0 0 0 / 0.1));
-}
-
-.nodes g:hover~line {
-  stroke-opacity: 0.8;
-  stroke-width: 3px;
-}
-</style>
