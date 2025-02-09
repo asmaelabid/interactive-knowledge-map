@@ -29,7 +29,6 @@ const handleShowJson = () => {
     </div>
     <div class="flex items-center gap-6">
       <ThemeToggle />
-      <Button variant="danger">Logout</Button>
     </div>
   </header>
 </template>
