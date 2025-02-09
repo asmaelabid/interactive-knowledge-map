@@ -54,7 +54,7 @@ watch(() => props.node, (newNode) => {
 async function updateNode() {
   loading.value = true
   try {
-    await axios.put(`${import.meta.env.VITE_API_URL}/courses/${node.value.id}`, {
+    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/courses/${node.value.id}`, {
       name: node.value.name,
       parent_name: node.value.parent_name
     })
@@ -92,7 +92,7 @@ async function updateNode() {
 async function removeNode() {
   loading.value = true
   try {
-    await axios.delete(`${import.meta.env.VITE_API_URL}/courses/${node.value.id}`)
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/courses/${node.value.id}`)
     graphStore.removeNode(node.value.id)
     await courseStore.fetchCourses()
 

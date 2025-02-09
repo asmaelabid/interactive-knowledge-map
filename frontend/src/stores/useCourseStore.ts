@@ -14,6 +14,7 @@ export const useCourseStore = defineStore("courses", () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const graphStore = useGraphStore();
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   async function fetchCourses() {
     isLoading.value = true;
@@ -44,7 +45,7 @@ export const useCourseStore = defineStore("courses", () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/courses`,
+        `${API_URL}/courses`,
         {
           name,
           parent_name: parentId,
