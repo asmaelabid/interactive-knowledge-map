@@ -115,22 +115,22 @@ function updateGraph() {
         .attr('stroke-width', '2')
 
       const connectedLinks = graphStore.links.filter(l =>
-        l.source.id === d.id || l.target.id === d.id
+        (l.source as any).id === d.id || (l.target as any).id === d.id
       )
 
       const connectedNodeIds = new Set()
       connectedLinks.forEach(l => {
-        connectedNodeIds.add(l.source.id)
-        connectedNodeIds.add(l.target.id)
+        connectedNodeIds.add((l.source as any).id)
+        connectedNodeIds.add((l.target as any).id)
       })
 
       d3.selectAll('line')
-        .filter(l => l.source.id === d.id || l.target.id === d.id)
+        .filter((l: any) => l.source.id === d.id || l.target.id === d.id)
         .attr('class', 'transition-all duration-50 ease-in-out stroke-purple-400 dark:stroke-purple-600')
         .attr('stroke-width', '3')
 
       d3.selectAll('circle')
-        .filter(n => connectedNodeIds.has(n.id) && n.id !== d.id)
+        .filter((n: any) => connectedNodeIds.has(n.id) && n.id !== d.id)
         .attr('class', 'transition-all duration-200 fill-purple-400 stroke-purple-600 dark:fill-purple-500 dark:stroke-purple-700')
 
       d3.select(this)
@@ -154,9 +154,9 @@ function updateGraph() {
           .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
       }
     })
-    .on('dblclick', function (event, d) {
+    .on('dblclick', function (event, d: { id: string }) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
-      const courseData = courseStore.courses.find(c => c.id === d.id)
+      const courseData = courseStore.courses.find((c: { id: string }) => c.id === d.id)
       selectedNode.value = updatedNode ? {
         ...updatedNode,
         parent_name: courseData?.parent_name || null
@@ -289,7 +289,7 @@ onMounted(async () => {
     .attr('class', 'rounded-lg')
 
   const simulation = d3.forceSimulation(graphStore.nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(200))
+    .force('link', d3.forceLink(links).id((d: any) => d.id).distance(200))
     .force('charge', d3.forceManyBody().strength(-100))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force('x', d3.forceX(width / 2).strength(0.01))
@@ -330,7 +330,7 @@ onMounted(async () => {
 
   node.selectAll('circle')
     .on('mouseover', function (event, d) {
-      if(event.buttons) return
+      if (event.buttons) return
       d3.select(this)
         .transition()
         .duration(50)
@@ -338,7 +338,7 @@ onMounted(async () => {
         .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
     })
     .on('mouseout', function (event) {
-      if(event.buttons) return
+      if (event.buttons) return
       d3.select(this)
         .transition()
         .duration(50)
@@ -361,10 +361,10 @@ onMounted(async () => {
       node.y = Math.max(20, Math.min(height - 20, node.y))
     })
     link
-      .attr('x1', d => d.source.x)
-      .attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x)
-      .attr('y2', d => d.target.y)
+      .attr('x1', d => (d.source as any).x)
+      .attr('y1', d => (d.source as any).y)
+      .attr('x2', d => (d.target as any).x)
+      .attr('y2', d => (d.target as any).y)
 
     node
       .attr('transform', d => `translate(${d.x},${d.y})`)
