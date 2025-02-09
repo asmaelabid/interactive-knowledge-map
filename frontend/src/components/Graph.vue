@@ -136,19 +136,23 @@ function updateGraph() {
       d3.select(this)
         .attr('class', 'transition-all duration-200 fill-purple-400 stroke-purple-600 dark:fill-purple-500 dark:stroke-purple-700')
     })
-    .on('mouseover', function () {
-      d3.select(this)
-        .transition()
-        .duration(50)
-        .attr('r', 15)
-        .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
+    .on('mouseover', function (event, d) {
+      if (!event.buttons) {
+        d3.select(this)
+          .transition()
+          .duration(50)
+          .attr('r', 15)
+          .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
+      }
     })
-    .on('mouseout', function () {
-      d3.select(this)
-        .transition()
-        .duration(50)
-        .attr('r', 12)
-        .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
+    .on('mouseout', function (event, d) {
+      if (!event.buttons) {
+        d3.select(this)
+          .transition()
+          .duration(50)
+          .attr('r', 12)
+          .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
+      }
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
@@ -325,14 +329,16 @@ onMounted(async () => {
     .text(d => d.name)
 
   node.selectAll('circle')
-    .on('mouseover', function () {
+    .on('mouseover', function (event, d) {
+      if(event.buttons) return
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 15)
         .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
     })
-    .on('mouseout', function () {
+    .on('mouseout', function (event) {
+      if(event.buttons) return
       d3.select(this)
         .transition()
         .duration(50)
