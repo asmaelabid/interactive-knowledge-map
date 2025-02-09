@@ -20,7 +20,7 @@ export const useCourseStore = defineStore("courses", () => {
     error.value = null;
 
     try {
-      const response = await axios.get("http://localhost:8000/api/v1/courses");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/courses`);
       const fetchedCourses = response.data;
       const deletedNodeIds = graphStore.nodes
         .filter(
@@ -44,7 +44,7 @@ export const useCourseStore = defineStore("courses", () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/courses",
+        `${import.meta.env.VITE_API_URL}/courses`,
         {
           name,
           parent_name: parentId,

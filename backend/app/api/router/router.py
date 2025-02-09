@@ -15,6 +15,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
+    "https://interactive-knowledge-map.vercel.app"
 ]
 
 def setup_cors(app):
