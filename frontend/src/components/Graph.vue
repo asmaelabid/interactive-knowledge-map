@@ -35,18 +35,6 @@ const svg = ref(null)
 const simulation = ref(null)
 const emit = defineEmits(['closeJsonViewer'])
 
-const getNodeColors = (isDark: boolean, isHovered: boolean) => {
-  return isDark 
-    ? {
-        fill: isHovered ? 'rgb(129 140 248)' : 'rgb(99 102 241)',
-        stroke: isHovered ? 'rgb(79 70 229)' : 'rgb(67 56 202)'  
-      }
-    : {
-        fill: isHovered ? 'rgb(96 165 250)' : 'rgb(59 130 246)',
-        stroke: isHovered ? 'rgb(37 99 235)' : 'rgb(29 78 216)' 
-      }
-}
-
 function clearGraph() {
   if (!svg.value) return
   svg.value.select('.nodes').selectAll('*').remove()
@@ -119,27 +107,19 @@ function updateGraph() {
     .text(d => d.name)
 
   nodeEnter.selectAll('circle')
-  .on('mouseover', function () {
-      const isDark = document.documentElement.classList.contains('dark')
-      const colors = getNodeColors(isDark, true)
-      
+    .on('mouseover', function () {
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 15)
-        .attr('fill', colors.fill)
-        .attr('stroke', colors.stroke)
+        .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
     })
     .on('mouseout', function () {
-      const isDark = document.documentElement.classList.contains('dark')
-      const colors = getNodeColors(isDark, false)
-      
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 12)
-        .attr('fill', colors.fill)
-        .attr('stroke', colors.stroke)
+        .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
@@ -148,7 +128,6 @@ function updateGraph() {
         ...updatedNode,
         parent_name: courseData?.parent_name || null
       } : null
-
     })
 
   const link = svg.value.select('.links').selectAll('line')
@@ -310,44 +289,14 @@ onMounted(async () => {
         .transition()
         .duration(50)
         .attr('r', 15)
-        .attr('fill', 'orange')
+        .attr('class', 'transition-all duration-200 fill-blue-300 stroke-blue-500 dark:fill-indigo-400 dark:stroke-indigo-600')
     })
     .on('mouseout', function () {
       d3.select(this)
         .transition()
         .duration(50)
         .attr('r', 12)
-        .attr('fill', 'rgb(59 130 246)')
-    })
-    .on('mousedown', function (event, d) {
-      link.each(function (l) {
-        if (l.source.id === d.id || l.target.id === d.id) {
-          d3.select(this)
-            .transition()
-            .duration(50)
-            .attr('stroke', '#ffa07a')
-          node.selectAll('circle').each(function (n) {
-            if (l.source.id === n.id || l.target.id === n.id) {
-              if (n.id !== d.id) {
-                d3.select(this)
-                  .transition()
-                  .duration(50)
-                  .attr('fill', '#ffa07a')
-              }
-            }
-          })
-        }
-      })
-    })
-    .on('mouseup', function (event, d) {
-      node.selectAll('circle')
-        .transition()
-        .duration(50)
-        .attr('fill', 'rgb(59 130 246)')
-      link
-        .transition()
-        .duration(50)
-        .attr('stroke', 'rgb(156 163 175)')
+        .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
     })
     .on('dblclick', function (event, d) {
       const updatedNode = graphStore.nodes.find(n => n.id === d.id)
