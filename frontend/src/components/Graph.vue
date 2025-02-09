@@ -107,6 +107,35 @@ function updateGraph() {
     .text(d => d.name)
 
   nodeEnter.selectAll('circle')
+    .on('mousedown', function (event, d) {
+      d3.selectAll('circle')
+        .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
+      d3.selectAll('line')
+        .attr('class', 'transition-all duration-50 ease-in-out stroke-gray-400 dark:stroke-gray-600')
+        .attr('stroke-width', '2')
+
+      const connectedLinks = graphStore.links.filter(l =>
+        l.source.id === d.id || l.target.id === d.id
+      )
+
+      const connectedNodeIds = new Set()
+      connectedLinks.forEach(l => {
+        connectedNodeIds.add(l.source.id)
+        connectedNodeIds.add(l.target.id)
+      })
+
+      d3.selectAll('line')
+        .filter(l => l.source.id === d.id || l.target.id === d.id)
+        .attr('class', 'transition-all duration-50 ease-in-out stroke-purple-400 dark:stroke-purple-600')
+        .attr('stroke-width', '3')
+
+      d3.selectAll('circle')
+        .filter(n => connectedNodeIds.has(n.id) && n.id !== d.id)
+        .attr('class', 'transition-all duration-200 fill-purple-400 stroke-purple-600 dark:fill-purple-500 dark:stroke-purple-700')
+
+      d3.select(this)
+        .attr('class', 'transition-all duration-200 fill-purple-400 stroke-purple-600 dark:fill-purple-500 dark:stroke-purple-700')
+    })
     .on('mouseover', function () {
       d3.select(this)
         .transition()
@@ -204,6 +233,18 @@ function dragended(event, d) {
   d.y = y
   d.fx = null
   d.fy = null
+  d3.selectAll('circle')
+    .transition()
+    .duration(50)
+    .attr('r', 12)
+    .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
+
+  // Reset all links
+  d3.selectAll('line')
+    .transition()
+    .duration(50)
+    .attr('class', 'transition-all duration-50 ease-in-out stroke-gray-400 dark:stroke-gray-600')
+    .attr('stroke-width', '2')
   graphStore.updateNodePosition(d.id, x, y)
   simulation.value?.alpha(0.1).restart()
 
