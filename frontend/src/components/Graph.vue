@@ -346,8 +346,8 @@ onMounted(async () => {
         .attr('class', 'transition-all duration-200 fill-blue-500 stroke-blue-700 dark:fill-indigo-500 dark:stroke-indigo-700')
     })
     .on('dblclick', function (event, d) {
-      const updatedNode = graphStore.nodes.find(n => n.id === d.id)
-      const courseData = courseStore.courses.find(c => c.id === d.id)
+      const updatedNode = graphStore.nodes.find(n => n.id === (d as any).id)
+      const courseData = courseStore.courses.find(c => c.id === (d as any).id)
       selectedNode.value = updatedNode ? {
         ...updatedNode,
         parent_name: courseData?.parent_name || null
