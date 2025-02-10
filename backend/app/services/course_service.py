@@ -51,7 +51,7 @@ class CourseService:
                 
                 course_dict = await CourseService._get_course_dict(course, parent)
                 course_list.append(CourseSchema(**course_dict))
-                
+            
             return course_list
         except Exception as e:
             logging.error(f"Error fetching courses: {str(e)}")
