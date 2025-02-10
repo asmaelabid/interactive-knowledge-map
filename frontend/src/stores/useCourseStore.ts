@@ -14,13 +14,14 @@ export const useCourseStore = defineStore("courses", () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const graphStore = useGraphStore();
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/api/v1";
 
   async function fetchCourses() {
     isLoading.value = true;
     error.value = null;
 
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/courses`);
+      const response = await axios.get(`${API_URL}/courses`);
       const fetchedCourses = response.data;
       const deletedNodeIds = graphStore.nodes
         .filter(
@@ -44,7 +45,7 @@ export const useCourseStore = defineStore("courses", () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/courses`,
+        `${API_URL}/courses`,
         {
           name,
           parent_name: parentId,
