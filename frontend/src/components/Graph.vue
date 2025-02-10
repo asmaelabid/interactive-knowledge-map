@@ -1,5 +1,13 @@
 <template>
   <div class="relative h-screen w-full bg-gray-50 dark:bg-gray-900">
+    <div class="absolute top-4 left-4 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 text-sm text-gray-600 dark:text-gray-300 opacity-75 hover:opacity-100 transition-opacity">
+      <span class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Double-click a node to edit its details
+      </span>
+    </div>
     <div class="absolute inset-0 flex flex-col" :class="{ 'blur-sm': showJsonViewer }">
       <div class="flex-1 w-full rounded-lg shadow-inner bg-white dark:bg-gray-800" ref="graphContainer"></div>
       <NodeEditor v-if="selectedNode" :node="selectedNode" @close="selectedNode = null" />
