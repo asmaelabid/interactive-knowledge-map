@@ -49,13 +49,19 @@ class CourseService:
                     parent_result = await db.execute(parent_query)
                     parent = parent_result.scalar_one_or_none()
                 
-                course_dict = await CourseService._get_course_dict(course, parent)
+                course_dict = {
+                    "id": course.id,
+                    "name": course.name,
+                    "parent_id": course.parent_id,
+                    "parent_name": parent.name if parent else None
+                }
                 course_list.append(CourseSchema(**course_dict))
                 
             return course_list
         except Exception as e:
             logging.error(f"Error fetching courses: {str(e)}")
             raise
+
 
     @staticmethod
     async def create_course(db: AsyncSession, course: CourseCreate):
