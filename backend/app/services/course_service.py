@@ -39,6 +39,7 @@ class CourseService:
         try:
             query = select(Course).offset(skip).limit(limit)
             result = await db.execute(query)
+            await db.commit()
             courses = result.scalars().all()
             
             course_list = []
@@ -56,6 +57,7 @@ class CourseService:
                     "parent_name": parent.name if parent else None
                 }
                 course_list.append(CourseSchema(**course_dict))
+                
                 
             return course_list
         except Exception as e:
