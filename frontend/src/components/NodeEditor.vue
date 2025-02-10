@@ -46,6 +46,8 @@ const loading = ref(false)
 const toastMessage = ref('')
 const toast = useToast()
 const editorRef = ref<HTMLElement | null>(null)
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/api/v1";
+
 
 watch(() => props.node, (newNode) => {
   node.value = { ...newNode }
@@ -54,7 +56,7 @@ watch(() => props.node, (newNode) => {
 async function updateNode() {
   loading.value = true
   try {
-    await axios.put(`${import.meta.env.VITE_BACKEND_URL}/courses/${node.value.id}`, {
+    await axios.put(`${API_URL}/courses/${node.value.id}`, {
       name: node.value.name,
       parent_name: node.value.parent_name
     })
@@ -92,7 +94,7 @@ async function updateNode() {
 async function removeNode() {
   loading.value = true
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/courses/${node.value.id}`)
+    await axios.delete(`${API_URL}/courses/${node.value.id}`)
     graphStore.removeNode(node.value.id)
     await courseStore.fetchCourses()
 
