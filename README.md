@@ -34,7 +34,7 @@ A web application for visualizing and managing course dependencies using an inte
 1. **Clone the repository**
 
   ```bash
-  git clone https://github.com/yourusername/interactive-knowledge-map.git
+  git clone https://github.com/asmaelabid/interactive-knowledge-map.git
   ```
 
   ```
